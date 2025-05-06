@@ -338,16 +338,12 @@ function createMessageElement(message) {
   dataPreview.appendChild(expandToggle);
   dataPreview.appendChild(jsonContent);
   
-  // Toggle expand/collapse on click
-  dataPreview.addEventListener('click', function(e) {
+  // Remove click listener from dataPreview and only make the toggle clickable
+  expandToggle.addEventListener('click', function(e) {
+    // Toggle the expand/collapse state
     dataPreview.classList.toggle('collapsed');
     dataPreview.classList.toggle('expanded');
     expandToggle.textContent = dataPreview.classList.contains('expanded') ? '▼' : '▶';
-  });
-  
-  // Make the toggle also clickable
-  expandToggle.addEventListener('click', function(e) {
-    dataPreview.click();
     e.stopPropagation();
   });
   
