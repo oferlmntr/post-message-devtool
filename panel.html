@@ -19,6 +19,9 @@
       --button-hover-bg: #e3e3e3;
       --filter-bg: #f5f5f5;
       --expand-icon-color: #555;
+      --warning-color: #f57c00;
+      --error-color: #d32f2f;
+      --connection-success: #4caf50;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -37,6 +40,9 @@
         --button-hover-bg: #4d5156;
         --filter-bg: #292a2d;
         --expand-icon-color: #9aa0a6;
+        --warning-color: #ffb74d;
+        --error-color: #ef5350;
+        --connection-success: #81c995;
       }
     }
 
@@ -56,6 +62,7 @@
       justify-content: space-between;
       align-items: center;
       height: 24px;
+      position: relative;
     }
     .controls {
       display: flex;
@@ -187,11 +194,78 @@
     label {
       font-size: 13px;
     }
+
+    /* Reconnection status indicator */
+    .reconnection-status {
+      position: fixed;
+      background-color: var(--warning-color);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      top: 8px;
+      right: 8px;
+      font-size: 13px;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      white-space: nowrap;
+      animation: pulse 2s infinite;
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+    }
+
+    .reconnection-status::before {
+      content: "";
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: white;
+      margin-right: 8px;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.8; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    /* Error message display */
+    .error-message {
+      background-color: var(--error-color);
+      color: white;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 4px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    /* Connection status icon */
+    .connection-status {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-left: 8px;
+      background-color: var(--connection-success);
+    }
+
+    .connection-status.disconnected {
+      background-color: var(--error-color);
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h2>postMessage Events</h2>
+    <h2>postMessage Events <span id="connection-indicator" class="connection-status"></span></h2>
     <div class="controls">
       <button id="clear-btn">Clear</button>
       <label>
