@@ -4,10 +4,7 @@
   "description": "A Chrome DevTools extension for monitoring and debugging postMessage events on web pages",
   "private": true,
   "scripts": {
-    "lint": "echo 'Linting will be added in the future'",
-    "test": "echo 'Testing will be added in the future'",
-    "build": "echo 'Build script will be added in the future'",
-    "package": "echo 'Packaging script will be added in the future'"
+    "start": "echo 'Read README.md for instructions'"
   },
   "keywords": [
     "chrome-extension",
@@ -15,7 +12,7 @@
     "postmessage",
     "debugging"
   ],
-  "author": "Ofer Lemnitzer and contributors",
+  "author": "Ofer Shapira and contributors",
   "license": "MIT",
   "homepage": "https://github.com/oferlmntr/post-message-devtool",
   "repository": {
