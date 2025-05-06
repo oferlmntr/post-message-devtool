@@ -14,9 +14,93 @@ const resetFilterButton = document.getElementById('reset-filter');
 
 // Connect to the background script
 const tabId = chrome.devtools.inspectedWindow.tabId;
-const port = chrome.runtime.connect({
-  name: `postMessageDevTools-${tabId}`
-});
+let port;
+let reconnectionAttempts = 0;
+const MAX_RECONNECTION_ATTEMPTS = 5;
+
+// Function to establish connection with the background script
+function connectToBackground() {
+  try {
+    port = chrome.runtime.connect({
+      name: `postMessageDevTools-${tabId}`
+    });
+    
+    console.log('Connected to background script');
+    
+    // Reset reconnection attempts on successful connection
+    reconnectionAttempts = 0;
+    
+    // Handle messages from background script
+    port.onMessage.addListener(handleBackgroundMessage);
+    
+    // Handle disconnection
+    port.onDisconnect.addListener(() => {
+      console.log('Disconnected from background script');
+      
+      // Check for error
+      if (chrome.runtime.lastError) {
+        console.error('Connection error:', chrome.runtime.lastError.message);
+      }
+      
+      // Try to reconnect if not at max attempts
+      if (reconnectionAttempts < MAX_RECONNECTION_ATTEMPTS) {
+        reconnectionAttempts++;
+        console.log(`Reconnection attempt ${reconnectionAttempts}/${MAX_RECONNECTION_ATTEMPTS}`);
+        
+        // Attempt to reconnect with exponential backoff
+        setTimeout(connectToBackground, 1000 * Math.pow(2, reconnectionAttempts - 1));
+      } else {
+        console.error('Max reconnection attempts reached');
+        // Show error message in UI
+        const errorEl = document.createElement('div');
+        errorEl.className = 'error-message';
+        errorEl.textContent = 'Connection to extension lost. Please refresh the DevTools panel.';
+        messagesContainer.appendChild(errorEl);
+      }
+    });
+    
+    // Request message history after connection
+    requestMessageHistory();
+  } catch (error) {
+    console.error('Error connecting to background script:', error);
+    // Try to reconnect if not at max attempts
+    if (reconnectionAttempts < MAX_RECONNECTION_ATTEMPTS) {
+      reconnectionAttempts++;
+      setTimeout(connectToBackground, 1000 * Math.pow(2, reconnectionAttempts - 1));
+    }
+  }
+}
+
+// Function to request message history
+function requestMessageHistory() {
+  if (port) {
+    try {
+      port.postMessage({
+        type: 'REQUEST_HISTORY'
+      });
+    } catch (error) {
+      console.error('Error requesting history:', error);
+      // Connection might be broken, try to reconnect
+      connectToBackground();
+    }
+  }
+}
+
+// Function to handle messages from background script
+function handleBackgroundMessage(message) {
+  if (message.type === 'NEW_MESSAGE') {
+    // Add new message
+    messages.push(message.message);
+    applyFilters();
+  } else if (message.type === 'HISTORY_UPDATED') {
+    // Replace messages with history
+    messages = message.messages;
+    applyFilters();
+  }
+}
+
+// Initialize connection
+connectToBackground();
 
 // Messages array
 let messages = [];
@@ -194,19 +278,6 @@ function renderMessages() {
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Handle messages from background script
-port.onMessage.addListener(function(message) {
-  if (message.type === 'NEW_MESSAGE') {
-    // Add new message
-    messages.push(message.message);
-    applyFilters();
-  } else if (message.type === 'HISTORY_UPDATED') {
-    // Replace messages with history
-    messages = message.messages;
-    applyFilters();
-  }
-});
-
 // Clear button click
 clearButton.addEventListener('click', function() {
   // Clear messages locally
@@ -215,9 +286,17 @@ clearButton.addEventListener('click', function() {
   renderMessages();
   
   // Send clear command to background
-  port.postMessage({
-    type: 'CLEAR_HISTORY'
-  });
+  try {
+    if (port) {
+      port.postMessage({
+        type: 'CLEAR_HISTORY'
+      });
+    }
+  } catch (error) {
+    console.error('Error sending clear command:', error);
+    // Try to reconnect
+    connectToBackground();
+  }
 });
 
 // Preserve log change

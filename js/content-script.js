@@ -18,6 +18,28 @@ window.addEventListener = function(type, listener, options) {
   return originalAddEventListener.call(this, type, listener, options);
 };
 
+// Function to safely send messages to the background script
+function safeSendMessage(message) {
+  try {
+    chrome.runtime.sendMessage(message, response => {
+      if (chrome.runtime.lastError) {
+        console.log('Extension context invalidated, reconnecting...');
+        // If the extension context was invalidated, we can try to reconnect
+        // by sending a new connection message after a short delay
+        setTimeout(() => {
+          chrome.runtime.sendMessage({ 
+            type: 'CONTENT_SCRIPT_CONNECTED', 
+            tabId,
+            url: window.location.href
+          });
+        }, 1000);
+      }
+    });
+  } catch (e) {
+    console.log('Error sending message to background script:', e);
+  }
+}
+
 // Listen for all postMessage events
 window.addEventListener('message', function(event) {
   // Avoid capturing internal extension messages
@@ -38,14 +60,14 @@ window.addEventListener('message', function(event) {
   };
 
   // Send the captured message to the background script
-  chrome.runtime.sendMessage({
+  safeSendMessage({
     type: 'POSTMESSAGE_EVENT',
     message
   });
 }, true);
 
 // Inform the background script that this content script is ready
-chrome.runtime.sendMessage({ 
+safeSendMessage({ 
   type: 'CONTENT_SCRIPT_CONNECTED', 
   tabId,
   url: window.location.href
