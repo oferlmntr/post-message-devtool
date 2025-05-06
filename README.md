@@ -1,4 +1,4 @@
-# postMessage DevTools
+# postMessage Dev Tools Chrome Extension
 
 <div align="center">
 
