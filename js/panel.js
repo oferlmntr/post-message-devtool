@@ -116,39 +116,6 @@ let options = {
   }
 };
 
-// Format JSON value with syntax highlighting
-function formatJSON(value) {
-  try {
-    let json = JSON.stringify(value, null, 2);
-    
-    // Add syntax highlighting
-    json = json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-      let cls = 'json-number';
-      if (/^"/.test(match)) {
-        if (/:$/.test(match)) {
-          cls = 'json-key';
-          // Remove the colon from the key
-          match = match.replace(/:$/, '');
-        } else {
-          cls = 'json-string';
-        }
-      } else if (/true|false/.test(match)) {
-        cls = 'json-boolean';
-      } else if (/null/.test(match)) {
-        cls = 'json-null';
-      }
-      return '<span class="' + cls + '">' + match + '</span>';
-    });
-    
-    // Add colons back after keys
-    json = json.replace(/<\/span>(\s*)/g, '</span><span>:</span>$1');
-    
-    return json;
-  } catch (e) {
-    return String(value);
-  }
-}
-
 // Format value for display
 function formatValue(value) {
   try {
@@ -156,7 +123,7 @@ function formatValue(value) {
     if (value === null) return 'null';
     
     if (typeof value === 'object') {
-      return formatJSON(value);
+      return JSON.stringify(value, null, 2);
     }
     
     return String(value);
@@ -189,10 +156,10 @@ function createMessageElement(message) {
   expandToggle.className = 'expand-toggle';
   expandToggle.textContent = '▶';
   
-  // Create content container
-  const jsonContent = document.createElement('div');
+  // Create content container with pre tag for proper formatting
+  const jsonContent = document.createElement('pre');
   jsonContent.className = 'json-content';
-  jsonContent.innerHTML = formatValue(message.data);
+  jsonContent.textContent = formatValue(message.data);
   
   // Add toggle and content to preview
   dataPreview.appendChild(expandToggle);
@@ -203,11 +170,6 @@ function createMessageElement(message) {
     dataPreview.classList.toggle('collapsed');
     dataPreview.classList.toggle('expanded');
     expandToggle.textContent = dataPreview.classList.contains('expanded') ? '▼' : '▶';
-    
-    // Stop event if clicking on the toggle itself (to prevent double toggle)
-    if (e.target === expandToggle) {
-      e.stopPropagation();
-    }
   });
   
   // Make the toggle also clickable
