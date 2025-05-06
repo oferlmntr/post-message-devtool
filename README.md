@@ -240,11 +240,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more information on how to contribute
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- Based on the initial work by [rohitcoder](https://github.com/rohitcoder)
-- Inspired by the need for better postMessage debugging tools in web development
-
 ## 📞 Contact
 
 If you have any questions or feedback, please open an issue on the GitHub repository. 
