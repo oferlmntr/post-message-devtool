@@ -362,12 +362,19 @@ function applyFilters() {
   const originFilter = options.filters.origin.toLowerCase();
   const contentFilter = options.filters.content.toLowerCase();
   
+  // First apply development filters to all messages (hidden from user)
+  const devFilteredMessages = messages.filter(message => {
+    // Filter out messages that match development patterns
+    return window.DEV_FILTER_PATTERNS ? !window.DEV_FILTER_PATTERNS.shouldFilter(message) : true;
+  });
+  
+  // Then apply user-defined filters
   if (!originFilter && !contentFilter) {
-    // No filters, show all messages
-    filteredMessages = [...messages];
+    // No user filters, show all messages that passed dev filters
+    filteredMessages = [...devFilteredMessages];
   } else {
-    // Apply filters
-    filteredMessages = messages.filter(message => {
+    // Apply user filters to already dev-filtered messages
+    filteredMessages = devFilteredMessages.filter(message => {
       const matchesOrigin = !originFilter || 
         message.origin.toLowerCase().includes(originFilter);
       
