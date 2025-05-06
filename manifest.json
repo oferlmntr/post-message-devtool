@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "postMessage DevTools",
+  "permissions": ["storage", "alarms"],
+  "host_permissions": ["<all_urls>"],
+  "description": "Adds a dedicated panel in Chrome DevTools to view and debug postMessage events in real-time",
+  "version": "1.0.0",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "devtools_page": "devtools.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "js/content-script.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ]
+}

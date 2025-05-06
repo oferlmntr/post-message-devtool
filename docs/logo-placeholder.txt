@@ -1,0 +1,11 @@
+# Logo Placeholder
+
+Please create a logo for the project and save it as:
+- docs/logo.png
+
+Recommended specifications:
+- Size: 512x512px
+- Format: PNG with transparency
+- Style: Simple and modern with "PM" letters
+
+The logo should represent the concept of debugging postMessage communication. 

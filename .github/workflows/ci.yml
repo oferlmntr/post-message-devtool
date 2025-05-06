@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+        continue-on-error: true
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+        
+  validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Validate manifest.json
+        run: |
+          if [ -f "manifest.json" ]; then
+            echo "Validating manifest.json structure"
+            cat manifest.json | jq empty
+          else
+            echo "manifest.json not found"
+            exit 1
+          fi 

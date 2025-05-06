@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>postMessage DevTools</title>
+  <style>
+    :root {
+      --background-color: #fafafa;
+      --text-color: #333;
+      --header-bg: #f3f3f3;
+      --border-color: #ddd;
+      --hover-bg: #f5f5f5;
+      --source-color: #0077cc;
+      --origin-color: #2e7d32;
+      --timestamp-color: #888;
+      --data-bg: #f8f8f8;
+      --empty-text-color: #888;
+      --button-bg: #f3f3f3;
+      --button-hover-bg: #e3e3e3;
+      --filter-bg: #f5f5f5;
+      --json-key-color: #811f3f;
+      --json-string-color: #0b6125;
+      --json-number-color: #1a1aa6;
+      --json-boolean-color: #1a1aa6;
+      --json-null-color: #808080;
+      --expand-icon-color: #555;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background-color: #202124;
+        --text-color: #e8eaed;
+        --header-bg: #292a2d;
+        --border-color: #3c4043;
+        --hover-bg: #292a2d;
+        --source-color: #8ab4f8;
+        --origin-color: #81c995;
+        --timestamp-color: #9aa0a6;
+        --data-bg: #292a2d;
+        --empty-text-color: #9aa0a6;
+        --button-bg: #3c4043;
+        --button-hover-bg: #4d5156;
+        --filter-bg: #292a2d;
+        --json-key-color: #f07178;
+        --json-string-color: #c3e88d;
+        --json-number-color: #89ddff;
+        --json-boolean-color: #89ddff;
+        --json-null-color: #9aa0a6;
+        --expand-icon-color: #9aa0a6;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background-color);
+      color: var(--text-color);
+    }
+    .header {
+      background-color: var(--header-bg);
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 24px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .messages-container {
+      overflow-y: auto;
+      height: calc(100vh - 42px); /* Adjusted for smaller header */
+    }
+    .message-item {
+      padding: 10px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+    }
+    .message-item:hover {
+      background-color: var(--hover-bg);
+    }
+    .source {
+      color: var(--source-color);
+      font-weight: bold;
+    }
+    .origin {
+      color: var(--origin-color);
+    }
+    .timestamp {
+      color: var(--timestamp-color);
+      font-size: 12px;
+    }
+    .data-preview {
+      margin-top: 5px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      background-color: var(--data-bg);
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      position: relative;
+      cursor: pointer;
+      transition: max-height 0.3s ease-out;
+    }
+    .expand-toggle {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      color: var(--expand-icon-color);
+      user-select: none;
+      z-index: 1;
+    }
+    .data-preview.collapsed {
+      max-height: 100px;
+      overflow: hidden;
+    }
+    .data-preview.collapsed::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 30px; 
+      background: linear-gradient(transparent, var(--data-bg));
+      pointer-events: none;
+    }
+    .data-preview.expanded {
+      max-height: none;
+    }
+    .json-content {
+      padding-right: 20px; /* Space for the toggle icon */
+    }
+    .json-key {
+      color: var(--json-key-color);
+    }
+    .json-string {
+      color: var(--json-string-color);
+    }
+    .json-number {
+      color: var(--json-number-color);
+    }
+    .json-boolean {
+      color: var(--json-boolean-color);
+    }
+    .json-null {
+      color: var(--json-null-color);
+    }
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--empty-text-color);
+      padding: 20px;
+      text-align: center;
+    }
+    button {
+      background-color: var(--button-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 4px 10px;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+    button:hover {
+      background-color: var(--button-hover-bg);
+    }
+    h2 {
+      font-size: 16px;
+      margin: 0;
+    }
+    .filter-container {
+      background-color: var(--filter-bg);
+      padding: 8px;
+      border-bottom: 1px solid var(--border-color);
+      display: none;
+    }
+    .filter-container.visible {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .filter-input {
+      padding: 4px 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      font-size: 13px;
+    }
+    label {
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>postMessage Events</h2>
+    <div class="controls">
+      <button id="clear-btn">Clear</button>
+      <label>
+        <input type="checkbox" id="preserve-log" checked>
+        Preserve log
+      </label>
+      <button id="filter-btn">Filter</button>
+    </div>
+  </div>
+  
+  <div class="filter-container" id="filter-container">
+    <div class="filter-group">
+      <label for="origin-filter">Origin:</label>
+      <input type="text" id="origin-filter" class="filter-input" placeholder="Filter by origin">
+    </div>
+    <div class="filter-group">
+      <label for="content-filter">Content:</label>
+      <input type="text" id="content-filter" class="filter-input" placeholder="Filter by content">
+    </div>
+    <button id="apply-filter">Apply</button>
+    <button id="reset-filter">Reset</button>
+  </div>
+  
+  <div class="messages-container" id="messages">
+    <div class="empty-state" id="empty-state">
+      <h3>No postMessage events captured yet</h3>
+      <p>postMessage events will appear here as they occur on the page.</p>
+    </div>
+  </div>
+
+  <script src="js/panel.js"></script>
+</body>
+</html> 

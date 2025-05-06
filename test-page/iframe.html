@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iframe Content</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+    }
+    h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    pre {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      overflow: auto;
+      font-size: 13px;
+      max-height: 120px;
+    }
+    button {
+      background-color: #34a853;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+    button:hover {
+      background-color: #2d8e46;
+    }
+    .controls {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>iframe Content</h2>
+  
+  <div class="controls">
+    <button id="reply-to-parent">Reply to Parent</button>
+    <button id="send-ping">Send Ping</button>
+  </div>
+  
+  <h3>Messages from Parent:</h3>
+  <pre id="iframe-received"></pre>
+  
+  <script>
+    // Keep track of messages received
+    const iframeReceived = document.getElementById('iframe-received');
+    let messageCount = 0;
+    
+    // Listen for messages from parent
+    window.addEventListener('message', function(event) {
+      messageCount++;
+      const message = `#${messageCount} | From: ${event.origin} | Data: ${JSON.stringify(event.data)}`;
+      iframeReceived.textContent = message + '\n' + iframeReceived.textContent;
+    });
+    
+    // Reply to parent
+    document.getElementById('reply-to-parent').addEventListener('click', function() {
+      window.parent.postMessage({
+        type: 'reply',
+        message: 'Hello from iframe!',
+        timestamp: new Date().toISOString()
+      }, '*');
+    });
+    
+    // Send ping
+    document.getElementById('send-ping').addEventListener('click', function() {
+      window.parent.postMessage({
+        type: 'ping',
+        timestamp: new Date().toISOString()
+      }, '*');
+    });
+    
+    // Send ready message when loaded
+    window.onload = function() {
+      setTimeout(() => {
+        window.parent.postMessage({
+          type: 'ready',
+          message: 'iframe loaded and ready'
+        }, '*');
+      }, 500);
+    };
+  </script>
+</body>
+</html> 

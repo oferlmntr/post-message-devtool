@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>postMessage Test Page</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      margin-top: 0;
+      color: #333;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .column {
+      flex: 1;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+    }
+    iframe {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #3367d6;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow: auto;
+      margin: 10px 0;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      box-sizing: border-box;
+    }
+    textarea {
+      height: 100px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>postMessage DevTools Test Page</h1>
+  
+  <p>This page demonstrates various postMessage scenarios to test the postMessage DevTools extension.</p>
+  
+  <div class="container">
+    <div class="column">
+      <h2>Parent Window</h2>
+      
+      <h3>Send Message to iframe</h3>
+      <textarea id="parent-message">{"action": "greet", "message": "Hello from parent!"}</textarea>
+      <button id="send-to-iframe">Send to iframe</button>
+      
+      <h3>Messages Received:</h3>
+      <pre id="parent-received"></pre>
+    </div>
+    
+    <div class="column">
+      <h2>iframe Content</h2>
+      <iframe id="test-frame" src="iframe.html"></iframe>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="column">
+      <h2>Send to Other Origin</h2>
+      <p>Send message to an iframe with different origin (simulated):</p>
+      <input type="text" id="target-origin" value="https://example.com" placeholder="Target origin">
+      <textarea id="cross-origin-message">{"action": "getData", "id": 12345}</textarea>
+      <button id="send-cross-origin">Send Cross-Origin Message</button>
+    </div>
+    
+    <div class="column">
+      <h2>Test Edge Cases</h2>
+      <button id="send-undefined">Send undefined</button>
+      <button id="send-null">Send null</button>
+      <button id="send-complex">Send Complex Object</button>
+      <button id="send-large">Send Large Message</button>
+      <button id="send-multiple">Send 10 Messages Rapidly</button>
+    </div>
+  </div>
+  
+  <script>
+    // Keep track of messages received
+    const parentReceived = document.getElementById('parent-received');
+    let messageCount = 0;
+    
+    // Listen for messages from iframe
+    window.addEventListener('message', function(event) {
+      messageCount++;
+      const message = `#${messageCount} | From: ${event.origin} | Data: ${JSON.stringify(event.data)}`;
+      parentReceived.textContent = message + '\n' + parentReceived.textContent;
+    });
+    
+    // Wait for iframe to load
+    window.onload = function() {
+      const iframe = document.getElementById('test-frame');
+      const iframeWindow = iframe.contentWindow;
+      
+      // Send message to iframe
+      document.getElementById('send-to-iframe').addEventListener('click', function() {
+        const message = document.getElementById('parent-message').value;
+        try {
+          const data = JSON.parse(message);
+          iframeWindow.postMessage(data, '*');
+        } catch (e) {
+          alert('Invalid JSON: ' + e.message);
+        }
+      });
+      
+      // Send cross-origin message
+      document.getElementById('send-cross-origin').addEventListener('click', function() {
+        const origin = document.getElementById('target-origin').value;
+        const message = document.getElementById('cross-origin-message').value;
+        try {
+          const data = JSON.parse(message);
+          // Note: This will still be intercepted by our extension, but origin will be different
+          iframeWindow.postMessage(data, origin);
+        } catch (e) {
+          alert('Invalid JSON: ' + e.message);
+        }
+      });
+      
+      // Edge case tests
+      document.getElementById('send-undefined').addEventListener('click', function() {
+        iframeWindow.postMessage(undefined, '*');
+      });
+      
+      document.getElementById('send-null').addEventListener('click', function() {
+        iframeWindow.postMessage(null, '*');
+      });
+      
+      document.getElementById('send-complex').addEventListener('click', function() {
+        const complex = {
+          numbers: [1, 2, 3, 4, 5],
+          nested: {
+            a: {
+              b: {
+                c: "deep nesting"
+              }
+            }
+          },
+          fn: "function() { return 'This is a function stringified'; }",
+          date: new Date().toString(),
+          regexp: "/test/g"
+        };
+        iframeWindow.postMessage(complex, '*');
+      });
+      
+      document.getElementById('send-large').addEventListener('click', function() {
+        const large = {
+          title: "Large Message Test",
+          description: "A large message to test handling of big data payloads",
+          items: []
+        };
+        
+        // Generate large array of items
+        for (let i = 0; i < 1000; i++) {
+          large.items.push({
+            id: i,
+            name: `Item ${i}`,
+            value: Math.random() * 1000,
+            data: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ".repeat(5)
+          });
+        }
+        
+        iframeWindow.postMessage(large, '*');
+      });
+      
+      document.getElementById('send-multiple').addEventListener('click', function() {
+        for (let i = 0; i < 10; i++) {
+          setTimeout(() => {
+            iframeWindow.postMessage({
+              messageNumber: i + 1,
+              timestamp: new Date().toISOString(),
+              text: `Rapid message ${i + 1} of 10`
+            }, '*');
+          }, i * 100); // Send message every 100ms
+        }
+      });
+    };
+  </script>
+</body>
+</html> 
