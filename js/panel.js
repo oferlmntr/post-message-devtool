@@ -4,6 +4,7 @@
 const messagesContainer = document.getElementById('messages');
 const emptyState = document.getElementById('empty-state');
 const clearButton = document.getElementById('clear-btn');
+const pauseButton = document.getElementById('pause-btn');
 const preserveLogCheckbox = document.getElementById('preserve-log');
 const filterButton = document.getElementById('filter-btn');
 const filterContainer = document.getElementById('filter-container');
@@ -23,6 +24,7 @@ let reconnectTimer = null;
 let pingTimer = null;
 let pingTimeoutTimer = null;
 let lastPongTime = 0;
+let isPaused = false; // Track whether log tracking is paused
 
 // Initialize connection indicator
 if (connectionIndicator) {
@@ -246,9 +248,12 @@ function handleBackgroundMessage(message) {
   }
   
   if (message.type === 'NEW_MESSAGE') {
-    // Add new message
-    messages.push(message.message);
-    applyFilters();
+    // Add new message only if not paused
+    if (!isPaused) {
+      messages.push(message.message);
+      applyFilters();
+    }
+    return;
   } else if (message.type === 'HISTORY_UPDATED') {
     // Replace messages with history
     messages = message.messages || [];
@@ -443,6 +448,9 @@ filterButton.addEventListener('click', function() {
   }
 });
 
+// Pause/resume button click
+pauseButton.addEventListener('click', togglePause);
+
 // Apply filter
 applyFilterButton.addEventListener('click', function() {
   options.filters.origin = originFilterInput.value.trim();
@@ -492,4 +500,17 @@ document.addEventListener('visibilitychange', function() {
     console.log('Tab became visible, attempting reconnect');
     connectToBackground();
   }
-}); 
+});
+
+// Function to toggle pause/resume state
+function togglePause() {
+  isPaused = !isPaused;
+  
+  if (isPaused) {
+    pauseButton.innerHTML = '▶️';
+    pauseButton.title = 'Resume tracking';
+  } else {
+    pauseButton.innerHTML = '⏸️';
+    pauseButton.title = 'Pause tracking';
+  }
+} 

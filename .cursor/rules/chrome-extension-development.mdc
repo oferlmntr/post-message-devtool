@@ -1,0 +1,51 @@
+---
+name: chrome-extension-development
+description: Rules for Chrome Extension development with a focus on Manifest V3
+type: Always
+---
+
+# Chrome Extension Development Rules
+
+You are working on a Chrome DevTools extension called "postMessage DevTools" that helps monitor and debug postMessage events on web pages.
+
+## Project Overview
+
+This extension:
+- Creates a dedicated panel in Chrome DevTools for monitoring postMessage events
+- Captures and displays postMessage events in real-time with syntax highlighting
+- Provides filtering capabilities and message preservation
+- Uses Manifest V3
+
+## Extension Architecture Guidelines
+
+### Content Script (`js/content-script.js`)
+- Injected into web pages to capture postMessage events
+- Overrides native `window.postMessage` and `window.addEventListener` methods
+- Sends captured events to the background service worker
+
+### Background Service Worker (`js/background.js`)
+- Central communication hub for the extension
+- Manages connections with DevTools panels
+- Maintains message history and persistence
+
+### DevTools Integration (`js/devtools.js` & `devtools.html`)
+- Creates a custom DevTools panel
+- Establishes connection with the background service worker
+
+### Panel UI (`panel.html` & `js/panel.js`)
+- Displays captured postMessage events
+- Implements filtering and user interface controls
+
+## Best Practices to Follow
+
+1. **Performance**: Minimize overhead in content scripts
+2. **Memory Management**: Avoid memory leaks, especially in message storage
+3. **Error Handling**: Implement robust error handling for extension lifecycle events
+4. **User Experience**: Create a clean, intuitive interface that matches DevTools style
+
+## Code Style
+
+- Use modern JavaScript (ES6+) features but ensure compatibility
+- Follow consistent naming conventions for variables and functions
+- Add meaningful comments for complex logic
+- Prefer functional programming patterns where appropriate 

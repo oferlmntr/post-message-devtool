@@ -1,0 +1,41 @@
+---
+name: devtools-panel
+description: Guidelines for working with DevTools panel UI components
+type: Auto Attached
+files: ["panel.html", "js/panel.js"]
+---
+
+# DevTools Panel UI Guidelines
+
+You are working on the panel UI for the postMessage DevTools extension. This panel displays captured postMessage events in a format similar to the Chrome DevTools Console.
+
+## Panel Components
+
+The panel UI consists of:
+- A toolbar with controls for clearing, filtering, and preserving messages
+- A message list that displays captured postMessage events
+- Message items with source information, origin, and formatted data
+- JSON data formatting with syntax highlighting and collapsible sections
+
+## UI/UX Guidelines
+
+1. **DevTools Integration**: The panel should visually match Chrome DevTools styling
+2. **Performance**: Render messages efficiently, especially with large datasets
+3. **Usability**: Provide intuitive controls for message filtering and management
+4. **Responsiveness**: Handle window resizing gracefully
+5. **Dark/Light Mode**: Support both color schemes
+
+## Key Functionality
+
+- Message filtering by origin, source, and content
+- JSON data collapsing/expanding
+- Clear message log functionality
+- Preserve log toggle when navigating between pages
+- Syntax highlighting for message data
+
+## Best Practices
+
+- Use efficient DOM manipulation to avoid performance issues
+- Implement virtualized scrolling for large message lists
+- Handle error states gracefully
+- Provide visual feedback for user actions 

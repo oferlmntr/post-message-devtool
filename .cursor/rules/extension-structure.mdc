@@ -1,0 +1,80 @@
+---
+name: extension-structure
+description: Guidelines for the extension structure and manifest configuration
+type: Agent Requested
+---
+
+# Extension Structure Guidelines
+
+You are working on a Chrome extension named "postMessage DevTools" that follows Manifest V3 requirements and best practices.
+
+## Project Structure
+
+```
+postMessage-DevTools/
+├── js/                      # JavaScript source files
+│   ├── background.js        # Service worker for message handling
+│   ├── content-script.js    # Content script injected into pages
+│   ├── panel.js             # DevTools panel functionality
+│   ├── devtools.js          # DevTools integration
+│   ├── code.js              # Syntax highlighting functionality
+│   └── postMessage-debugger.js  # Helper utilities
+├── images/                  # Extension icons
+├── docs/                    # Documentation assets
+├── test-page/               # Test pages for development
+├── devtools.html            # DevTools page HTML
+├── panel.html               # Panel UI HTML
+├── popup.html               # Extension popup HTML
+└── manifest.json            # Extension manifest
+```
+
+## Manifest Configuration
+
+The manifest.json file defines the extension's capabilities:
+
+```json
+{
+  "manifest_version": 3,
+  "name": "postMessage DevTools",
+  "permissions": ["storage", "alarms"],
+  "host_permissions": ["<all_urls>"],
+  "description": "Adds a dedicated panel in Chrome DevTools to view and debug postMessage events in real-time",
+  "version": "1.0.0",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "devtools_page": "devtools.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "js/content-script.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ]
+}
+```
+
+## Best Practices
+
+- Keep the manifest updated with appropriate permissions
+- Use the minimum permissions required for functionality
+- Ensure icons are provided in all required sizes
+- Configure content scripts to run at the appropriate time
+- Add descriptive comments for permissions
+- Update version numbers appropriately for releases 

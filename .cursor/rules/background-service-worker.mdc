@@ -1,0 +1,55 @@
+---
+name: background-service-worker
+description: Guidelines for the background service worker implementation
+type: Auto Attached
+files: ["js/background.js"]
+---
+
+# Background Service Worker Guidelines
+
+You are working on the background service worker for the postMessage DevTools extension. This component acts as the central communication hub between content scripts and DevTools panels.
+
+## Responsibilities
+
+The background service worker:
+- Receives postMessage events from content scripts
+- Maintains message history for each tab
+- Forwards messages to the appropriate DevTools panel
+- Persists message history to storage
+- Manages connections with DevTools panels
+
+## Chrome Extension Lifecycle
+
+Be aware of Chrome extension lifecycle constraints:
+- Service workers may be terminated after idle periods
+- Use persistent storage to handle termination gracefully
+- Implement keep-alive mechanisms when necessary
+- Reconnect gracefully after service worker restarts
+
+## Message Flow
+
+1. Content scripts capture postMessage events and send them to the background
+2. Background worker processes messages and stores them in tab-specific history
+3. If a DevTools panel is connected, messages are forwarded immediately
+4. Message history is persisted to storage periodically
+
+## Message Format
+
+```javascript
+{
+  source: "window" | "iframe",  // Source of the message
+  sourceUrl: String,            // URL of the source window/frame
+  targetUrl: String,            // URL of the target window/frame
+  origin: String,               // Origin specified in postMessage
+  data: Any,                    // The message data
+  timestamp: Number,            // When the message was sent
+  tabId: String                 // ID of the tab where the message occurred
+}
+```
+
+## Best Practices
+
+- Implement efficient message queuing for high-volume scenarios
+- Use structured error handling for all communication channels
+- Limit storage usage to avoid quota limitations
+- Implement proper cleanup for tabs that are closed 

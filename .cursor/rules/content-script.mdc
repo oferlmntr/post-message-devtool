@@ -1,0 +1,48 @@
+---
+name: content-script
+description: Guidelines for the content script that intercepts postMessage events
+type: Auto Attached
+files: ["js/content-script.js"]
+---
+
+# Content Script Guidelines
+
+You are working on the content script for the postMessage DevTools extension. This script runs in the context of web pages and is responsible for intercepting postMessage events.
+
+## Responsibilities
+
+The content script:
+- Overrides the native `window.postMessage` method
+- Intercepts calls to `window.addEventListener` for message events
+- Captures postMessage events as they occur
+- Sends captured events to the background service worker
+- Maintains a message queue if the background is disconnected
+
+## Method Overriding Approach
+
+Care must be taken when overriding native browser methods:
+- Preserve original functionality exactly
+- Ensure no side effects or performance issues
+- Handle all edge cases (e.g., different parameter formats)
+- Avoid interfering with page functionality
+
+## Communication with Background
+
+- Establish a connection with the background service worker
+- Implement reconnection logic with exponential backoff
+- Queue messages when connection is unavailable
+- Send queued messages when connection is restored
+
+## Performance Considerations
+
+- Minimize overhead in message event processing
+- Use efficient serialization for complex message data
+- Avoid memory leaks in event listeners
+- Execute overrides as early as possible (document_start)
+
+## Security Concerns
+
+- Do not expose extension functionality to the page
+- Ensure injected code doesn't interfere with page security
+- Respect Same-Origin Policy when handling messages
+- Sanitize data before sending to background 
